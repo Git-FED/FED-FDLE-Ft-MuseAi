@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FED FDLE Ft MuseAi — South Florida Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
+  #banner {
+    box-sizing: border-box; padding: 8px 12px;
+    background: #111; color: #fff; font-size: 14px; line-height: 1.35;
+  }
+  #banner b { color: #ffd43b; }
+  #banner .warn { color: #ffb3b3; }
+  #citybar { padding: 8px 12px; background: #222; color: #fff; font-size: 14px; }
+  #citybar button, #citybar select {
+    margin: 2px; padding: 6px 10px; font-size: 14px; cursor: pointer;
+    background: #ffd43b; border: none; border-radius: 4px;
+  }
+  #citybar button.active { background: #fff; }
+  #map { height: calc(100% - 64px - 44px - 180px); width: 100%; min-height: 300px; }
+  #list {
+    height: 180px; overflow-y: auto; box-sizing: border-box;
+    padding: 8px 12px; font-size: 14px; background: #f5f5f5;
+  }
+  #list h3 { margin: 4px 0; font-size: 15px; }
+  #list .predator { color: #c00; }
+  #list .offender { color: #b60; }
+  #list .unplotted { color: #666; }
+</style>
+</head>
+<body>
+<div id="banner">
+  <b>FED FDLE Ft MuseAi — South Florida Map</b><br>
+  West Palm Beach to Miami: Palm Beach, Broward, and Miami-Dade counties.
+  Source is the FDLE official list only. <span class="warn">Warning only. Do not approach anyone. List data can be old or wrong.</span>
+  <span id="status">Loading FDLE data…</span>
+</div>
+<div id="citybar">
+  Cities, in order:
+  <button data-city="all">All South Florida</button>
+  <button data-city="west-palm-beach" class="active">West Palm Beach</button>
+  <button data-city="lake-worth">Lake Worth</button>
+  <button data-city="boynton-beach">Boynton Beach</button>
+  <button data-city="delray-beach">Delray Beach</button>
+  <button data-city="boca-raton">Boca Raton</button>
+  <select id="more-cities"><option value="">More cities…</option></select>
+</div>
+<div id="map"></div>
+<div id="list"><h3>West Palm Beach</h3><p>Loading…</p></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script id="embedded-data">
+/*__EMBEDDED_DATA__*/
+</script>
+<script>
+  // South Florida: north edge West Palm Beach (~26.7N) to south edge Miami (~25.76N).
+  var map = L.map('map').setView([26.25, -80.14], 9);
+  map.fitBounds([[25.65, -80.35], [26.85, -80.00]]);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  // City markers — fixed geography, not registrant data.
+  var cities = [
+    { name: 'West Palm Beach', lat: 26.7153, lon: -80.0534, county: 'Palm Beach' },
+    { name: 'Lake Worth', lat: 26.6182, lon: -80.0568, county: 'Palm Beach' },
+    { name: 'Boynton Beach', lat: 26.5253, lon: -80.0665, county: 'Palm Beach' },
+    { name: 'Delray Beach', lat: 26.4615, lon: -80.0728, county: 'Palm Beach' },
+    { name: 'Boca Raton', lat: 26.3683, lon: -80.1289, county: 'Palm Beach' },
+    { name: 'Fort Lauderdale', lat: 26.1224, lon: -80.1373, county: 'Broward' },
+    { name: 'Hollywood', lat: 26.0112, lon: -80.1495, county: 'Broward' },
+    { name: 'Miami', lat: 25.7617, lon: -80.1918, county: 'Miami-Dade' }
+  ];
+  cities.forEach(function (c) {
+    L.marker([c.lat, c.lon]).addTo(map)
+      .bindPopup('<b>' + c.name + '</b><br>' + c.county + ' County');
+  });
+
+  // The people are IN this HTML file (EMBEDDED_DATA, built by
+  // map/embed_data.py from data/cities/*.json) — the page works even
+  // opened straight from disk, no server needed. Fetching the JSON
+  // files is only a fallback if the embedded data is missing.
+  var EMBEDDED = (typeof EMBEDDED_DATA !== 'undefined') ? EMBEDDED_DATA : null;
+  var pinLayer = L.layerGroup().addTo(map);
+  var statusEl = document.getElementById('status');
+  var listEl = document.getElementById('list');
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+    });
+  }
+
+  function showRecords(title, records, total, plottedCount) {
+    pinLayer.clearLayers();
+    var plotted = 0, bounds = [];
+    var html = '<h3>' + escapeHtml(title) + ' — ' + total + ' people, '
+      + plottedCount + ' with pins, ' + (total - plottedCount) + ' without pins</h3>';
+    records.forEach(function (rec) {
+      var isPlotted = typeof rec.lat === 'number' && typeof rec.lon === 'number';
+      if (isPlotted) {
+        var color = rec.designation === 'predator' ? 'red' : 'orange';
+        L.circleMarker([rec.lat, rec.lon], { color: color, radius: 6 })
+          .addTo(pinLayer)
+          .bindPopup('<b>' + escapeHtml(rec.name || 'Name not listed') + '</b><br>'
+            + escapeHtml(rec.designation || 'designation not listed') + '<br>'
+            + escapeHtml(rec.city || '') + ', ' + escapeHtml(rec.county || '') + '<br>'
+            + 'FDLE id: ' + escapeHtml(rec.id || 'not listed'));
+        bounds.push([rec.lat, rec.lon]);
+        plotted++;
+      }
+      html += '<div class="' + escapeHtml(rec.designation || '') + '">'
+        + escapeHtml(rec.name || 'Name not listed') + ' — '
+        + escapeHtml(rec.designation || 'designation not listed')
+        + (isPlotted ? '' : ' <span class="unplotted">(no pin — address could not be placed)</span>')
+        + '</div>';
+    });
+    listEl.innerHTML = html;
+    statusEl.textContent = 'Loaded ' + total + ' FDLE record(s) for ' + title + ': '
+      + plotted + ' plotted, ' + (total - plotted) + ' without coordinates (not plotted, never guessed).';
+    if (bounds.length) { map.fitBounds(bounds, { padding: [20, 20] }); }
+  }
+
+  function allRecords() {
+    var out = [];
+    Object.keys(EMBEDDED.cities).forEach(function (slug) {
+      EMBEDDED.cities[slug].records.forEach(function (r) { out.push(r); });
+    });
+    return out;
+  }
+
+  function loadCity(slug) {
+    document.querySelectorAll('#citybar button').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-city') === slug);
+    });
+    if (slug === 'all') {
+      if (EMBEDDED) {
+        var recs = allRecords();
+        var plotted = recs.filter(function (r) {
+          return typeof r.lat === 'number' && typeof r.lon === 'number';
+        }).length;
+        showRecords('All South Florida', recs, recs.length, plotted);
+        map.fitBounds([[25.65, -80.35], [26.85, -80.00]]);
+        return;
+      }
+      fetch('data/registrants.json').then(function (r) { return r.json(); })
+        .then(function (records) {
+          var p = records.filter(function (r) {
+            return typeof r.lat === 'number' && typeof r.lon === 'number';
+          }).length;
+          showRecords('All South Florida', records, records.length, p);
+          map.fitBounds([[25.65, -80.35], [26.85, -80.00]]);
+        })
+        .catch(function () {
+          statusEl.textContent = 'Could not load data/registrants.json. Serve this folder over http (not file://) or check the file exists.';
+        });
+      return;
+    }
+    if (EMBEDDED && EMBEDDED.cities[slug]) {
+      var d = EMBEDDED.cities[slug];
+      showRecords(d.city, d.records, d.total_records, d.plotted);
+      return;
+    }
+    fetch('data/cities/' + slug + '.json').then(function (r) { return r.json(); })
+      .then(function (data) {
+        showRecords(data.city, data.records, data.total_records, data.plotted);
+      })
+      .catch(function () {
+        statusEl.textContent = 'Could not load data/cities/' + slug + '.json. Serve this folder over http (not file://) or check the file exists.';
+      });
+  }
+
+  // Fill the "More cities" dropdown from the per-city index.
+  function fillMoreCities(idx) {
+    var select = document.getElementById('more-cities');
+    idx.cities.forEach(function (c) {
+      var opt = document.createElement('option');
+      opt.value = c.file.replace(/\.json$/, '');
+      opt.textContent = c.city + ' (' + c.total + ')';
+      select.appendChild(opt);
+    });
+    select.addEventListener('change', function () {
+      if (select.value) { loadCity(select.value); }
+    });
+  }
+  if (EMBEDDED && EMBEDDED.index) {
+    fillMoreCities(EMBEDDED.index);
+  } else {
+    fetch('data/cities/index.json').then(function (r) { return r.json(); })
+      .then(fillMoreCities);
+  }
+
+  document.querySelectorAll('#citybar button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.getElementById('more-cities').value = '';
+      loadCity(b.getAttribute('data-city'));
+    });
+  });
+
+  // Start on West Palm Beach, as ordered.
+  loadCity('west-palm-beach');
+</script>
+</body>
+</html>
