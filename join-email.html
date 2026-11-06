@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FEDPromptly · Join Email List</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg-body: #0b0b10;
+      --bg-card: #14141e;
+      --bg-input: #1e1e2f;
+      --text-primary: #f0eef8;
+      --text-secondary: #b8b2d4;
+      --text-muted: #7a74a0;
+      --border-light: #2a2a42;
+      --border-medium: #3d3a5c;
+      --gradient-primary: linear-gradient(135deg, #7c5cfc, #a78bfa);
+      --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* ── Discord‑style invite widget (the "Join Email List" button) ── */
+    .discord-invite-widget {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #2b2d31;
+      border: 1px solid #1e1f22;
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      color: #dbdee1;
+      max-width: 340px;
+      width: 100%;
+      box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      outline: none;
+    }
+    .discord-invite-widget:hover,
+    .discord-invite-widget:focus-visible {
+      border-color: #5865f2;
+      box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2);
+    }
+
+    /* Online status indicator */
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #23a55a;
+      box-shadow: 0 0 6px #23a55a;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .status-text {
+      color: #b5bac1;
+      font-size: 12px;
+    }
+
+    /* Fake email input look */
+    .email-input {
+      flex: 1;
+      min-width: 0;
+      background: #1e1f22;
+      border: 1px solid #3f4147;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      color: #dbdee1;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .email-input::placeholder {
+      color: #6d6f78;
+    }
+
+    /* Hint text below */
+    .hint {
+      font-size: 11px;
+      color: #6d6f78;
+      margin-top: 8px;
+      text-align: center;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* ── Modal styles ── */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+      background: var(--gradient-primary);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(139,108,247,0.35);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 8px 32px rgba(139,108,247,0.5);
+    }
+    .btn-primary:disabled {
+      background: var(--border-medium);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      animation: fadeIn 0.3s ease;
+    }
+    .modal-overlay.active { display: flex; }
+    @keyframes fadeIn {
+      from { opacity:0; transform:scale(0.96); }
+      to { opacity:1; transform:scale(1); }
+    }
+    .modal-card {
+      background: var(--bg-card);
+      border-radius: 1.5rem;
+      max-width: 420px;
+      width: 100%;
+      padding: 2rem;
+      box-shadow: 0 16px 56px rgba(0,0,0,0.9);
+      border: 1px solid var(--border-light);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-card .close {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: color 0.2s;
+      background: none;
+      border: none;
+      line-height: 1;
+    }
+    .modal-card .close:hover { color: var(--text-primary); }
+    .modal-card h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .modal-card .sub {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border-light);
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: var(--transition);
+      background: var(--bg-input);
+      color: var(--text-primary);
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #8b6cf7;
+      box-shadow: 0 0 0 3px rgba(139,108,247,0.2);
+    }
+    .form-options {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin: 0.5rem 0 1.2rem;
+      font-size: 0.85rem;
+    }
+    .form-options a {
+      color: #a78bfa;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .form-options a:hover { text-decoration: underline; }
+    .modal-card .btn-primary {
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 0.95rem;
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.2rem 0;
+    }
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-light);
+    }
+    .divider span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .toggle-auth {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 1rem;
+    }
+    .toggle-auth button {
+      background: none;
+      border: none;
+      color: #a78bfa;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: inherit;
+    }
+    .toggle-auth button:hover { text-decoration: underline; }
+    .message {
+      padding: 0.6rem 0.8rem;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    .message.error {
+      display: block;
+      background: rgba(239,68,68,0.15);
+      color: #fca5a5;
+      border: 1px solid #ef4444;
+    }
+    .message.success {
+      display: block;
+      background: rgba(16,185,129,0.15);
+      color: #6ee7b7;
+      border: 1px solid #10b981;
+    }
+    .message.info {
+      display: block;
+      background: rgba(59,130,246,0.15);
+      color: #93c5fd;
+      border: 1px solid #3b82f6;
+    }
+    .logged-in-view {
+      display: none;
+      text-align: center;
+    }
+    .logged-in-view .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--gradient-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 auto 12px;
+      box-shadow: 0 0 30px rgba(139,108,247,0.3);
+    }
+    .logged-in-view h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .logged-in-view p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      word-break: break-word;
+    }
+    .thank-you-message {
+      background: var(--bg-input);
+      border: 1px solid var(--border-light);
+      border-radius: 1rem;
+      padding: 1.2rem;
+      margin: 1.2rem 0;
+      text-align: left;
+    }
+    .thank-you-message p {
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+    .thank-you-message a {
+      color: #a78bfa;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .thank-you-message a:hover {
+      text-decoration: underline;
+    }
+    .btn-secondary {
+      background: var(--bg-input);
+      color: var(--text-primary);
+      border: 1px solid var(--border-light);
+      padding: 10px 24px;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+    .btn-secondary:hover {
+      background: var(--border-light);
+      border-color: var(--border-medium);
+      transform: translateY(-1px);
+    }
+    @media (max-width: 640px) {
+      .modal-card { padding: 1.5rem; margin: 10px; }
+    }
+  .invite-inline{display:inline-flex;align-items:center;gap:5px;margin-left:10px;color:#a78bfa;font-weight:600;text-decoration:none;font-size:.85rem}.invite-inline:hover{text-decoration:underline}.invite-inline span{font-size:1rem}@media(max-width:480px){.invite-inline{display:flex;margin:10px 0 0}}
+  </style>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+</head>
+<body>
+
+  <!-- ── Discord‑style "Join Email List" widget ── -->
+  <div style="display:flex; flex-direction:column; align-items:center; width:100%; max-width:340px;">
+    <div class="discord-invite-widget" id="openSignupBtn" role="button" tabindex="0" aria-label="Join our email list">
+      <div class="status-indicator">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-text" id="statusText">Join now</span>
+      </div>
+      <input
+        type="text"
+        class="email-input"
+        id="emailInput"
+        placeholder=""
+        readonly
+        tabindex="-1"
+        aria-hidden="true"
+      />
+    </div>
+    <div class="hint">Click to join our email list</div>
+  </div>
+
+  <!-- ── Auth modal ── -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-card">
+      <button class="close" id="closeModal">&times;</button>
+
+      <div id="loginView">
+        <h2 id="modalTitle">Join Email List</h2>
+        <p class="sub" id="modalSub">Stay updated with FEDPromptly</p>
+
+        <form id="loginForm" autocomplete="off">
+          <div class="form-group">
+            <label for="loginEmail">Email Address</label>
+            <input type="email" id="loginEmail" placeholder="you@example.com" required />
+          </div>
+
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" required minlength="6" />
+          </div>
+
+          <div class="form-options">
+            <a id="forgotPassword">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn-primary" id="authSubmitBtn">Join Email List</button>
+          <div id="authMessage" class="message"></div>
+
+          <div class="divider"><span>or</span></div>
+
+          <div class="toggle-auth">
+            <span id="toggleText">Already joined?</span>
+            <button type="button" id="toggleAuthMode">Sign In</button>
+            <a class="invite-inline" href="fedpromptly-invite.html">Open FedPromptly invite <span>↗</span></a>
+          </div>
+        </form>
+      </div>
+
+      <div class="logged-in-view" id="loggedInView">
+        <div class="avatar" id="loggedInAvatar"></div>
+        <h2 id="loggedInName"></h2>
+        <p id="loggedInEmail"></p>
+
+        <div class="thank-you-message">
+          <p><strong>Thank you for joining our email list!</strong></p>
+          <p>We will be reaching out soon. If you have any questions, comments, or concerns, email me anytime: <a href="mailto:contact@fedpromptly.com">contact@fedpromptly.com</a>.</p>
+        </div>
+
+        <button class="btn-secondary" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://qyuczfpgydgqywgthgrz.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_2NLEuDREplLS9DgUXeA8Tw_f8MJOhCq';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+    let currentUser = null;
+    let isSignUp = true;
+
+    const openSignupBtn = document.getElementById('openSignupBtn');
+    const authModal = document.getElementById('authModal');
+    const closeModal = document.getElementById('closeModal');
+
+    const loginView = document.getElementById('loginView');
+    const loggedInView = document.getElementById('loggedInView');
+
+    const loginForm = document.getElementById('loginForm');
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+    const authSubmitBtn = document.getElementById('authSubmitBtn');
+    const authMessage = document.getElementById('authMessage');
+
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSub = document.getElementById('modalSub');
+    const toggleAuthMode = document.getElementById('toggleAuthMode');
+    const toggleText = document.getElementById('toggleText');
+    const forgotPassword = document.getElementById('forgotPassword');
+
+    const loggedInAvatar = document.getElementById('loggedInAvatar');
+    const loggedInName = document.getElementById('loggedInName');
+    const loggedInEmail = document.getElementById('loggedInEmail');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const emailInput = document.getElementById('emailInput');
+
+    /* ═══════════════════════════════════════════════════════════
+       TYPEWRITER ANIMATION for the placeholder text
+       ═══════════════════════════════════════════════════════════ */
+    const TYPE_PHRASES = [
+      'Type your email here…',
+      'Join our newsletter…',
+      'Get early access…',
+      'Stay in the loop…'
+    ];
+    const TYPE_SPEED    = 65;   // ms per char while typing
+    const DELETE_SPEED  = 30;   // ms per char while deleting
+    const HOLD_DELAY    = 1600; // pause at end of phrase
+    const BETWEEN_DELAY = 350;  // pause between phrases
+    const CURSOR        = '|';
+
+    let typePhraseIndex = 0;
+    let typeCharIndex   = 0;
+    let isDeleting      = false;
+    let typingTimer     = null;
+    let typingActive    = false;
+
+    function startTyping() {
+      if (typingActive) return;
+      typingActive = true;
+      typePhraseIndex = 0;
+      typeCharIndex = 0;
+      isDeleting = false;
+      runTypingStep();
+    }
+
+    function stopTyping() {
+      typingActive = false;
+      if (typingTimer) {
+        clearTimeout(typingTimer);
+        typingTimer = null;
+      }
+    }
+
+    function runTypingStep() {
+      if (!typingActive) return;
+      const phrase = TYPE_PHRASES[typePhraseIndex];
+
+      if (!isDeleting) {
+        typeCharIndex++;
+        emailInput.placeholder = phrase.slice(0, typeCharIndex) + CURSOR;
+
+        if (typeCharIndex >= phrase.length) {
+          // Finished typing — hold, then delete
+          isDeleting = true;
+          typingTimer = setTimeout(runTypingStep, HOLD_DELAY);
+          return;
+        }
+        typingTimer = setTimeout(runTypingStep, TYPE_SPEED);
+      } else {
+        typeCharIndex--;
+        emailInput.placeholder = phrase.slice(0, typeCharIndex) + CURSOR;
+
+        if (typeCharIndex <= 0) {
+          // Finished deleting — advance to next phrase
+          isDeleting = false;
+          typePhraseIndex = (typePhraseIndex + 1) % TYPE_PHRASES.length;
+          typingTimer = setTimeout(runTypingStep, BETWEEN_DELAY);
+          return;
+        }
+        typingTimer = setTimeout(runTypingStep, DELETE_SPEED);
+      }
+    }
+
+    /* ── Message helpers ── */
+    function showMessage(msg, type = 'error') {
+      authMessage.textContent = msg;
+      authMessage.className = 'message ' + type;
+    }
+    function hideMessage() {
+      authMessage.className = 'message';
+      authMessage.textContent = '';
+    }
+
+    /* ── Mode switching ── */
+    function setAuthMode(signUp) {
+      isSignUp = signUp;
+      if (signUp) {
+        modalTitle.textContent = 'Join Email List';
+        modalSub.textContent = 'Stay updated with FEDPromptly';
+        authSubmitBtn.textContent = 'Join Email List';
+        toggleAuthMode.textContent = 'Sign In';
+        toggleText.textContent = 'Already joined?';
+      } else {
+        modalTitle.textContent = 'Sign In';
+        modalSub.textContent = 'Enter your credentials to continue';
+        authSubmitBtn.textContent = 'Sign In';
+        toggleAuthMode.textContent = 'Join Email List';
+        toggleText.textContent = 'New here?';
+      }
+      hideMessage();
+    }
+
+    function showLoginForm() {
+      loginView.style.display = 'block';
+      loggedInView.style.display = 'none';
+    }
+
+    function showLoggedInView(user) {
+      loginView.style.display = 'none';
+      loggedInView.style.display = 'block';
+      const name = user.email ? user.email.split('@')[0] : 'User';
+      loggedInAvatar.textContent = name.charAt(0).toUpperCase();
+      loggedInName.textContent = name;
+      loggedInEmail.textContent = user.email || '';
+    }
+
+    /* ── Widget state (changes when logged in) ── */
+    function updateOpenButton() {
+      if (currentUser) {
+        stopTyping();
+        statusText.textContent = 'Signed in';
+        emailInput.placeholder = 'View your account…';
+      } else {
+        statusText.textContent = 'Join now';
+        startTyping();
+      }
+    }
+
+    /* ── Modal open/close ── */
+    function openModal(forceSignUp = true) {
+      authModal.classList.add('active');
+      hideMessage();
+      if (currentUser) {
+        showLoggedInView(currentUser);
+      } else {
+        setAuthMode(forceSignUp);
+        showLoginForm();
+        loginForm.reset();
+        setTimeout(() => loginEmail.focus(), 100);
+      }
+    }
+    function closeModalFunc() {
+      authModal.classList.remove('active');
+      hideMessage();
+    }
+
+    /* ── Widget click + keyboard ── */
+    openSignupBtn.addEventListener('click', () => openModal(true));
+    openSignupBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openModal(true);
+      }
+    });
+
+    /* ── Modal close handlers ── */
+    closeModal.addEventListener('click', closeModalFunc);
+    authModal.addEventListener('click', (e) => {
+      if (e.target === authModal) closeModalFunc();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && authModal.classList.contains('active')) closeModalFunc();
+    });
+
+    /* ── Toggle sign-in / join ── */
+    toggleAuthMode.addEventListener('click', () => {
+      setAuthMode(!isSignUp);
+      loginForm.reset();
+    });
+
+    /* ── Forgot password ── */
+    forgotPassword.addEventListener('click', async () => {
+      const email = loginEmail.value.trim();
+      if (!email) {
+        showMessage('Please enter your email address first.', 'error');
+        return;
+      }
+      try {
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + window.location.pathname,
+        });
+        if (error) throw error;
+        showMessage('📧 Password reset email sent! Check your inbox.', 'info');
+      } catch (err) {
+        showMessage(err.message || 'Failed to send reset email.', 'error');
+      }
+    });
+
+    /* ── Auth handlers ── */
+    async function handleLogin(email, password) {
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        showMessage(`✅ Welcome back, ${email.split('@')[0]}!`, 'success');
+        currentUser = data.user;
+        updateOpenButton();
+        setTimeout(() => showLoggedInView(currentUser), 800);
+      } catch (err) {
+        let msg = err.message;
+        if (err.message.includes('Invalid login credentials')) msg = 'Invalid email or password.';
+        else if (err.message.includes('Email not confirmed')) msg = 'Please verify your email address first.';
+        showMessage(msg, 'error');
+        throw err;
+      }
+    }
+
+    async function handleSignUp(email, password) {
+      try {
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: window.location.origin + window.location.pathname }
+        });
+        if (error) throw error;
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+          showMessage('This email is already registered. Please sign in.', 'error');
+          return;
+        }
+        if (!data.session) {
+          showMessage('📧 Please check your email to confirm your subscription.', 'info');
+        } else {
+          showMessage(`✅ Account created! Welcome, ${email.split('@')[0]}!`, 'success');
+          currentUser = data.user;
+          updateOpenButton();
+          setTimeout(() => showLoggedInView(currentUser), 800);
+        }
+      } catch (err) {
+        let msg = err.message;
+        if (err.message.includes('User already registered')) {
+          msg = 'This email is already registered. Please sign in.';
+        }
+        showMessage(msg, 'error');
+        throw err;
+      }
+    }
+
+    /* ── Form submit ── */
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = loginEmail.value.trim();
+      const password = loginPassword.value;
+      if (!email || !password) {
+        showMessage('Please fill in all fields.', 'error');
+        return;
+      }
+      authSubmitBtn.disabled = true;
+      authSubmitBtn.textContent = isSignUp ? 'Joining…' : 'Signing in…';
+      hideMessage();
+      try {
+        if (isSignUp) {
+          await handleSignUp(email, password);
+        } else {
+          await handleLogin(email, password);
+        }
+      } catch (err) {
+        /* messages already shown */
+      } finally {
+        authSubmitBtn.disabled = false;
+        authSubmitBtn.textContent = isSignUp ? 'Join Email List' : 'Sign In';
+      }
+    });
+
+    /* ── Logout ── */
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await supabaseClient.auth.signOut();
+        currentUser = null;
+        updateOpenButton();
+        setAuthMode(false);
+        showLoginForm();
+        loginForm.reset();
+      } catch (err) {
+        console.error('Logout error:', err);
+      }
+    });
+
+    /* ── Auth state sync ── */
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        currentUser = session.user;
+        updateOpenButton();
+        showLoggedInView(currentUser);
+      }
+      if (event === 'SIGNED_OUT') {
+        currentUser = null;
+        updateOpenButton();
+        setAuthMode(false);
+        showLoginForm();
+      }
+      if (event === 'USER_UPDATED' && session) {
+        currentUser = session.user;
+        updateOpenButton();
+        showLoggedInView(currentUser);
+      }
+    });
+
+    /* ── Session check on load ── */
+    (async function checkSession() {
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+          currentUser = session.user;
+          updateOpenButton();
+        } else {
+          startTyping(); // Begin the typewriter effect
+        }
+      } catch (err) {
+        console.error('Session check error:', err);
+        startTyping();
+      }
+    })();
+  </script>
+
+</body>
+</html>

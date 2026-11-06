@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FedPromptly — Invite Button</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-deep: #1e1f22;
+    --bg-mid: #2b2d31;
+    --bg-surface: #313338;
+    --bg-float: #232428;
+    --text-normal: #dbdee1;
+    --text-header: #f2f3f5;
+    --text-muted: #949ba4;
+    --blurple: #5865f2;
+    --blurple-hover: #4752c4;
+    --green: #57f287;
+    --border: rgba(255,255,255,0.06);
+    --card-radius: 14px;
+    --banner-h: 128px;
+    --icon-size: 88px;
+  }
+
+  html, body { min-height: 100%; }
+
+  body {
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(88,101,242,0.10), transparent 65%),
+      var(--bg-deep);
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    color: var(--text-normal);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ───── OPEN BUTTON ───── */
+  .invite-btn {
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 18px 8px 8px;
+    border-radius: 14px;
+    text-decoration: none;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    box-shadow:
+      0 8px 24px -8px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+    transition:
+      transform .2s cubic-bezier(.2,.7,.3,1),
+      border-color .2s ease,
+      box-shadow .2s ease;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .invite-btn::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    border-radius: 16px;
+    background: linear-gradient(120deg, #5865f2, #00b0f4, #eb459e, #5865f2);
+    background-size: 300% 300%;
+    filter: blur(12px);
+    opacity: 0;
+    transition: opacity .3s ease;
+    animation: flow 8s linear infinite;
+  }
+
+  @keyframes flow {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .invite-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(88,101,242,0.5);
+    box-shadow:
+      0 14px 34px -10px rgba(0,0,0,0.85),
+      0 0 0 1px rgba(88,101,242,0.25);
+  }
+
+  .invite-btn:hover::before,
+  .invite-btn:focus-visible::before { opacity: 0.55; }
+
+  .invite-btn:active { transform: translateY(0) scale(0.985); }
+
+  .invite-btn:focus-visible {
+    outline: 2px solid var(--blurple);
+    outline-offset: 4px;
+  }
+
+  .invite-btn .icon {
+    position: relative;
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+  .invite-btn .icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    transform: scale(0.96);
+  }
+
+  .invite-btn .dot {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 2.5px solid var(--bg-surface);
+  }
+
+  .invite-btn .dot::after {
+    content: "";
+    position: absolute;
+    inset: -2.5px;
+    border-radius: 50%;
+    border: 2px solid var(--green);
+    animation: ping 2.4s ease-out infinite;
+  }
+
+  @keyframes ping {
+    0%   { transform: scale(0.7); opacity: .6; }
+    70%  { transform: scale(1.7); opacity: 0; }
+    100% { transform: scale(1.7); opacity: 0; }
+  }
+
+  .invite-btn .label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    line-height: 1.15;
+    text-align: left;
+  }
+
+  .invite-btn .name {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text-header);
+  }
+
+  .invite-btn .meta {
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--text-muted);
+  }
+
+  .invite-btn .arrow {
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+    transition: transform .2s ease, color .2s ease;
+  }
+
+  .invite-btn .arrow svg { width: 100%; height: 100%; }
+
+  .invite-btn:hover .arrow {
+    color: #fff;
+    transform: translateX(3px);
+  }
+
+  /* ───── MODAL ───── */
+  .invite-modal {
+    width: min(94vw, 520px);
+    max-width: 520px;
+    max-height: 92dvh;
+    margin: auto;
+    padding: 0;
+    border: none;
+    background: transparent;
+    overflow: auto;
+    color: inherit;
+    scrollbar-width: thin;
+  }
+
+  .invite-modal::backdrop {
+    background: rgba(15, 16, 18, 0.74);
+    backdrop-filter: blur(6px);
+  }
+
+  .invite-modal[open] {
+    animation: modalIn .22s ease-out;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: translateY(8px) scale(.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .modal-panel {
+    position: relative;
+    width: 100%;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 20;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: rgba(0,0,0,0.45);
+    color: #fff;
+    cursor: pointer;
+    transition: background .18s ease, transform .18s ease;
+  }
+
+  .modal-close:hover {
+    background: rgba(0,0,0,0.7);
+    transform: scale(1.06);
+  }
+
+  .modal-close:focus-visible {
+    outline: 2px solid var(--blurple);
+    outline-offset: 3px;
+  }
+
+  .modal-close svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* ───── FULL DISCORD CARD WIDGET ───── */
+  .discord-card {
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    box-shadow:
+      0 24px 60px -12px rgba(0,0,0,0.75),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+    position: relative;
+  }
+
+  .banner {
+    height: var(--banner-h);
+    position: relative;
+    background: linear-gradient(
+      120deg,
+      #232428 0%,
+      #5865f2 30%,
+      #00b0f4 60%,
+      #eb459e 85%,
+      #232428 100%
+    );
+    background-size: 300% 300%;
+    animation: colorFlow 10s ease-in-out infinite;
+    overflow: hidden;
+  }
+
+  .banner::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.25;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  @keyframes colorFlow {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .icon-wrap {
+    position: absolute;
+    left: 20px;
+    top: calc(var(--banner-h) - 48px);
+    z-index: 5;
+    width: var(--icon-size);
+    height: var(--icon-size);
+  }
+
+  .server-icon {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 5px solid var(--bg-surface);
+    background: #ffffff;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .server-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(0.95);
+  }
+
+  .online-dot {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--green);
+    border: 4px solid var(--bg-surface);
+    z-index: 6;
+  }
+
+  .card-header {
+    padding: 52px 20px 18px;
+    background: var(--bg-surface);
+    position: relative;
+  }
+
+  .server-name {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    color: var(--text-header);
+    line-height: 1.15;
+  }
+
+  .stats {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .stats i {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    display: inline-block;
+    opacity: 0.6;
+  }
+
+  .stats .tag { color: var(--text-normal); font-weight: 600; }
+
+  .card-body { padding: 0 20px 20px; }
+
+  .description {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    margin-top: 4px;
+  }
+
+  .description strong { color: var(--text-normal); font-weight: 600; }
+
+  .features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--bg-mid);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    line-height: 1;
+  }
+
+  .pill .emoji { font-size: 13px; line-height: 1; filter: saturate(0.85); }
+
+  .contacts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.01em;
+  }
+
+  .contacts .label {
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 9.5px;
+  }
+
+  .contacts a {
+    color: var(--text-normal);
+    text-decoration: none;
+    border-bottom: 1px dashed rgba(219,222,225,0.22);
+    padding-bottom: 1px;
+    transition: color .18s, border-color .18s;
+  }
+
+  .contacts a:hover { color: #fff; border-color: var(--blurple); }
+
+  .join-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 13px 16px;
+    margin-top: 18px;
+    border-radius: 10px;
+    background: var(--blurple);
+    color: #fff;
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.005em;
+    text-decoration: none;
+    transition: background .18s ease, transform .18s ease;
+    border: none;
+  }
+
+  .join-btn:hover { background: var(--blurple-hover); transform: translateY(-1px); }
+  .join-btn svg { width: 16px; height: 16px; opacity: 0.9; }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: var(--bg-float);
+    border-top: 1px solid var(--border);
+    font-size: 10.5px;
+    color: var(--text-muted);
+    font-family: "JetBrains Mono", "SF Mono", Menlo, monospace;
+    letter-spacing: 0.02em;
+  }
+
+  .card-footer .domain {
+    color: var(--text-normal);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .card-footer .domain:hover { color: #fff; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-muted);
+  }
+
+  .badge svg {
+    width: 12px;
+    height: 12px;
+    stroke: var(--green);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ───── RESPONSIVE ───── */
+  @media (max-width: 420px) {
+    :root { --banner-h: 108px; --icon-size: 76px; }
+    .icon-wrap { left: 16px; top: calc(var(--banner-h) - 42px); }
+    .online-dot { width: 18px; height: 18px; border-width: 3.5px; }
+    .card-header { padding: 46px 16px 14px; }
+    .server-name { font-size: 19px; }
+    .card-body { padding: 0 16px 16px; }
+    .card-footer { padding: 10px 16px; }
+
+    .invite-btn { padding: 7px 14px 7px 7px; gap: 10px; }
+    .invite-btn .icon { flex-basis: 36px; width: 36px; height: 36px; }
+    .invite-btn .name { font-size: 13px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .banner,
+    .invite-btn::before,
+    .invite-btn .dot::after,
+    .invite-modal[open] {
+      animation: none !important;
+    }
+    .banner { background-position: 50% 50%; }
+    .invite-btn,
+    .invite-btn .arrow,
+    .modal-close { transition: none; }
+  }
+</style>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+</head>
+<body>
+
+  <!-- COMPACT BUTTON -->
+  <button
+    class="invite-btn"
+    id="openInvite"
+    type="button"
+    aria-haspopup="dialog"
+    aria-controls="inviteModal"
+  >
+    <span class="icon">
+      <img src="https://i.ibb.co/67vXcRnx/icon.png" alt="" />
+      <span class="dot" aria-hidden="true"></span>
+    </span>
+
+    <span class="label">
+      <span class="name">FedPromptly</span>
+      <span class="meta">Open source · AI tools · Publishing</span>
+    </span>
+
+    <span class="arrow" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m9 18 6-6-6-6"/>
+      </svg>
+    </span>
+  </button>
+
+  <!-- FULL WIDGET MODAL -->
+  <dialog class="invite-modal" id="inviteModal" aria-label="FedPromptly social invite">
+    <div class="modal-panel">
+
+      <button class="modal-close" id="closeInvite" type="button" aria-label="Close invite">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.4" stroke-linecap="round">
+          <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+      </button>
+
+      <article class="discord-card" aria-label="FedPromptly social invite">
+
+        <div class="banner"></div>
+
+        <div class="icon-wrap">
+          <div class="server-icon">
+            <img src="https://i.ibb.co/67vXcRnx/icon.png" alt="FedPromptly Logo">
+          </div>
+          <div class="online-dot" title="Online"></div>
+        </div>
+
+        <header class="card-header">
+          <h1 class="server-name">FedPromptly</h1>
+          <div class="stats">
+            <span class="tag">Open source</span>
+            <i></i>
+            <span>AI tools</span>
+            <i></i>
+            <span>Publishing</span>
+          </div>
+        </header>
+
+        <main class="card-body">
+
+          <p class="description">
+            Building an open-source ecosystem for <strong>browser-native AI tools</strong> and <strong>cross-platform publishing</strong>.
+          </p>
+
+          <div class="features">
+            <span class="pill"><span class="emoji">🔓</span> Open source</span>
+            <span class="pill"><span class="emoji">🌐</span> Browser-native</span>
+            <span class="pill"><span class="emoji">🤖</span> AI tools</span>
+            <span class="pill"><span class="emoji">📡</span> Cross-platform</span>
+          </div>
+
+          <div class="contacts">
+            <span class="label">Contact</span>
+            <a href="mailto:contact@fedpromptly.com">contact@fedpromptly.com</a>
+            <a href="mailto:careers@fedpromptly.com">careers@fedpromptly.com</a>
+          </div>
+
+          <a class="join-btn" href="https://www.fedpromptly.com/social" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Join the community
+          </a>
+
+        </main>
+
+        <footer class="card-footer">
+          <a class="domain" href="https://www.fedpromptly.com" target="_blank" rel="noopener">www.fedpromptly.com</a>
+          <span class="badge">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18-6-6 6-6"/><path d="m15 6 6 6-6 6"/></svg>
+            Open source
+          </span>
+        </footer>
+
+      </article>
+    </div>
+  </dialog>
+
+  <script>
+    const modal = document.getElementById('inviteModal');
+    const openBtn = document.getElementById('openInvite');
+    const closeBtn = document.getElementById('closeInvite');
+
+    openBtn.addEventListener('click', () => {
+      modal.showModal();
+    });
+
+    closeBtn.addEventListener('click', () => {
+      modal.close();
+    });
+
+    // Close when clicking the backdrop / outside the card
+    modal.addEventListener('click', (event) => {
+      const rect = modal.getBoundingClientRect();
+      const inside =
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom;
+
+      if (!inside) modal.close();
+    });
+  </script>
+
+</body>
+</html>

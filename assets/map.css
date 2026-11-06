@@ -1,0 +1,410 @@
+/* ============================================================
+   Map block — themed to match the FED FDLE site palette
+   ============================================================ */
+
+.map-block {
+  padding-bottom: 120px;
+}
+
+.map-block-head {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 60px;
+  align-items: end;
+  margin-bottom: 28px;
+}
+
+.map-block-head h2 {
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 1.05;
+  letter-spacing: -.065em;
+  margin: 0;
+}
+
+.map-block-head h2 em {
+  font-style: normal;
+  color: var(--coral);
+}
+
+.map-block-head p {
+  font-size: 17px;
+  color: var(--muted);
+  max-width: 620px;
+  margin: 0;
+}
+
+/* ---------- Shell ---------- */
+.map-shell {
+  position: relative;
+  border-radius: 26px;
+  overflow: hidden;
+  background: var(--white);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 0 var(--line), 0 24px 50px #17182712;
+}
+
+#map {
+  height: 620px;
+  width: 100%;
+  background: #aad3df;
+  z-index: 0;
+}
+
+/* ---------- Overlay panel ---------- */
+.map-panel {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 500;
+  width: 306px;
+  max-width: calc(100% - 32px);
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: 0 8px 30px #10121b2e;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100% - 32px);
+}
+
+.map-panel header {
+  background: var(--navy);
+  color: var(--white);
+  padding: 13px 15px 11px;
+}
+
+.map-panel header h3 {
+  margin: 0 0 2px;
+  font-size: 14px;
+  letter-spacing: -.02em;
+  font-weight: 800;
+}
+
+.map-panel header p {
+  margin: 0;
+  font-size: 10.5px;
+  color: #b9b6bf;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: .04em;
+}
+
+.map-stats {
+  display: flex;
+  gap: 6px;
+  padding: 9px 10px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+.map-stat {
+  flex: 1;
+  text-align: center;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 5px 3px;
+}
+
+.map-stat b {
+  display: block;
+  font-size: 14px;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.map-stat span {
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.map-stat.off b { color: var(--coral); }
+.map-stat.pred b { color: var(--navy); }
+
+.map-controls {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--white);
+}
+
+.map-toggles {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.map-toggle {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #4a4852;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 6px 4px;
+  cursor: pointer;
+  user-select: none;
+  transition: .18s ease;
+}
+
+.map-toggle input {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--coral);
+  cursor: pointer;
+  margin: 0;
+}
+
+.map-toggle:hover { border-color: var(--coral); }
+
+.map-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: 0 0 auto;
+}
+
+.map-swatch.off { background: var(--coral); }
+.map-swatch.pred { background: var(--navy); }
+
+#map-search {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  outline: none;
+  transition: .18s ease;
+}
+
+#map-search::placeholder { color: #a5a1a8; }
+
+#map-search:focus {
+  border-color: var(--coral);
+  background: var(--white);
+  box-shadow: 0 0 0 3px #ff735d26;
+}
+
+#map-results {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  max-height: 210px;
+  background: var(--white);
+}
+
+.map-result {
+  display: flex;
+  gap: 7px;
+  align-items: flex-start;
+  padding: 7px 10px;
+  border-bottom: 1px solid #f0ede7;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.map-result:hover { background: #fff4f1; }
+
+.map-result .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex: 0 0 auto;
+}
+
+.map-result .dot.o { background: var(--coral); }
+.map-result .dot.p { background: var(--navy); }
+
+.map-result .txt b {
+  display: block;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.map-result .txt small {
+  display: block;
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.map-result.unplotted { opacity: .6; }
+.map-result.unplotted .txt small { color: #9a7b2e; }
+
+.map-no-results {
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.map-panel footer {
+  padding: 7px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  line-height: 1.45;
+  color: #8e8a92;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- Legend ---------- */
+.map-legend {
+  position: absolute;
+  right: 16px;
+  bottom: 22px;
+  z-index: 500;
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 6px 22px #10121b26;
+  padding: 9px 12px;
+  font-size: 11.5px;
+  color: #4a4852;
+}
+
+.map-legend h4 {
+  margin: 0 0 5px;
+  font-family: 'DM Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.map-legend .item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0;
+}
+
+.map-legend .map-swatch { width: 9px; height: 9px; }
+
+/* ---------- Markers ---------- */
+.person-marker {
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #10121b40, 0 1px 3px #10121b59;
+  box-sizing: border-box;
+}
+
+.person-marker.offender { background: var(--coral); }
+.person-marker.predator { background: var(--navy); }
+
+.cluster-icon {
+  border-radius: 50%;
+  color: #fff;
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffffd9;
+  box-shadow: 0 2px 8px #10121b4d;
+  box-sizing: border-box;
+}
+
+.cluster-icon.offender { background: #ff735dee; color: var(--ink); }
+.cluster-icon.predator { background: #171827ee; }
+
+/* ---------- Popups ---------- */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 10px 30px #10121b33;
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+  font-family: Manrope, system-ui, sans-serif;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.pop-name {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -.02em;
+  margin-bottom: 4px;
+}
+
+.pop-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 99px;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 7px;
+}
+
+.pop-badge.offender { background: var(--coral); color: var(--ink); }
+.pop-badge.predator { background: var(--navy); }
+
+.pop-row { color: #55525b; }
+.pop-row b { color: var(--ink); font-weight: 700; }
+
+.pop-id {
+  margin-top: 5px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: #96929b;
+}
+
+.city-label {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--navy);
+  font-family: 'DM Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-shadow: 0 1px 2px #fff, 0 0 3px #fff, 0 0 5px #fff;
+}
+
+.leaflet-container a.leaflet-popup-close-button { color: #8e8a92; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .map-block-head {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  #map { height: 540px; }
+  .map-panel { width: 268px; }
+  #map-results { max-height: 180px; }
+}
+
+@media (max-width: 620px) {
+  .map-block { padding-bottom: 80px; }
+  #map { height: 460px; }
+  .map-panel {
+    top: 10px;
+    left: 10px;
+    width: calc(100% - 20px);
+    max-height: 46%;
+  }
+  .map-panel header p { display: none; }
+  #map-results { max-height: 120px; }
+  .map-legend {
+    right: 10px;
+    bottom: 12px;
+    padding: 7px 9px;
+    font-size: 10.5px;
+  }
+}
